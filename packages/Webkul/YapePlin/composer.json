@@ -1,0 +1,27 @@
+{
+    "name": "webkul/yapeplin",
+    "description": "Yape / Plin payment method for Bagisto with receipt upload",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Webkul",
+            "email": "support@webkul.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Webkul\\YapePlin\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\YapePlin\\Providers\\YapePlinServiceProvider"
+            ]
+        }
+    }
+}
