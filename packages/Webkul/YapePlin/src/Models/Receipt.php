@@ -62,6 +62,6 @@ class Receipt extends Model implements ReceiptContract
      */
     public function getReceiptUrlAttribute(): string
     {
-        return asset('storage/' . $this->receipt_path);
+        return \Storage::url($this->receipt_path);
     }
 }

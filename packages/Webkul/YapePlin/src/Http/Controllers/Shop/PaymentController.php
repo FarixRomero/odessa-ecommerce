@@ -3,7 +3,6 @@
 namespace Webkul\YapePlin\Http\Controllers\Shop;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Webkul\Checkout\Facades\Cart;
 use Webkul\Sales\Repositories\OrderRepository;
 use Webkul\Sales\Transformers\OrderResource;
@@ -100,11 +99,14 @@ class PaymentController
                 'order_id'          => $order->id,
                 'receipt_path'      => $path,
                 'original_filename' => $file->getClientOriginalName(),
-                'status'            => 'pending',
+                'status'            => 'approved',
             ]);
 
+            // Update order status to pending_payment (waiting for admin to create invoice)
+            $this->orderRepository->update(['status' => 'pending_payment'], $order->id);
+
             return redirect()->route('shop.customers.account.orders.view', $order->id)
-                ->with('success', 'Comprobante subido exitosamente. Tu pedido será verificado pronto.');
+                ->with('success', 'Comprobante subido exitosamente. Tu pedido será procesado pronto.');
         } catch (\Exception $e) {
             report($e);
 

@@ -78,8 +78,95 @@
                 @endif
 
                 {!! view_render_event('bagisto.shop.customers.account.orders.cancel_button.after', ['order' => $order]) !!}
+
+                {{-- Yape/Plin Payment Button --}}
+                @if ($order->payment->method === 'yapeplin')
+                    @php
+                        $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
+                            ->findWhere(['order_id' => $order->id])
+                            ->first();
+                    @endphp
+
+                    @if (!$receipt)
+                        <a
+                            href="{{ route('yapeplin.upload', $order->id) }}"
+                            class="primary-button border-zinc-200 px-5 py-3 font-normal max-md:hidden bg-blue-600 text-white hover:bg-blue-700"
+                        >
+                            📸 Subir Comprobante de Pago
+                        </a>
+                    @endif
+                @endif
             </div>
         </div>
+
+        {{-- Yape/Plin Receipt Status --}}
+        @if ($order->payment->method === 'yapeplin')
+            @php
+                $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
+                    ->findWhere(['order_id' => $order->id])
+                    ->first();
+            @endphp
+
+            @if ($receipt)
+                <div class="mt-8 rounded-xl border border-gray-200 bg-white p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        📄 Comprobante de Pago Yape/Plin
+                    </h3>
+
+                    <div class="space-y-4">
+                        {{-- Receipt Image/PDF --}}
+                        <div>
+                            <span class="text-sm font-medium text-gray-700 mb-2 block">Comprobante subido:</span>
+                            @php
+                                $fileExtension = pathinfo($receipt->receipt_path, PATHINFO_EXTENSION);
+                            @endphp
+
+                            @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
+                                <div class="flex items-start gap-4">
+                                    <img
+                                        src="{{ Storage::url($receipt->receipt_path) }}"
+                                        alt="Comprobante de pago"
+                                        class="w-32 h-auto rounded-lg border border-gray-300 object-cover"
+                                    >
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-600 mb-3">{{ $receipt->original_filename }}</p>
+                                        <a
+                                            href="{{ Storage::url($receipt->receipt_path) }}"
+                                            target="_blank"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            </svg>
+                                            Ver imagen completa
+                                        </a>
+                                    </div>
+                                </div>
+                            @else
+                                <a
+                                    href="{{ Storage::url($receipt->receipt_path) }}"
+                                    target="_blank"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors"
+                                >
+                                    <span class="text-2xl">📄</span>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ $receipt->original_filename }}</p>
+                                        <p class="text-xs text-gray-500">Haz clic para abrir el PDF</p>
+                                    </div>
+                                </a>
+                            @endif
+                        </div>
+
+                        {{-- Upload Date --}}
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <p class="text-xs text-gray-500">
+                                Subido el {{ core()->formatDate($receipt->created_at, 'd M Y') }} a las {{ core()->formatDate($receipt->created_at, 'H:i') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endif
 
         {!! view_render_event('bagisto.shop.customers.account.orders.view.before', ['order' => $order]) !!}
 

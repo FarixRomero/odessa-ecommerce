@@ -169,13 +169,16 @@
                         </div>
 
                         <!-- Submit button -->
-                        <div class="flex justify-between items-center pt-4">
+                        <div class="flex justify-between items-center pt-4 mt-6">
                             <a href="{{ route('shop.customers.account.orders.view', $order->id) }}"
                                class="text-sm text-gray-600 hover:text-gray-900">
                                 ← Ver pedido
                             </a>
                             <button type="submit"
-                                    class="inline-flex justify-center py-3 px-8 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                    class="flex w-max items-center rounded-xl bg-blue-600 text-white px-7 py-2.5 font-medium hover:bg-blue-700 max-md:px-5 max-md:text-xs max-sm:rounded-lg max-sm:px-4 max-sm:py-2"
+                                    style="background-color: #2563EB; color: white; border: none;"
+                                    onmouseover="this.style.backgroundColor='#1D4ED8'"
+                                    onmouseout="this.style.backgroundColor='#2563EB'">
                                 Subir Comprobante
                             </button>
                         </div>

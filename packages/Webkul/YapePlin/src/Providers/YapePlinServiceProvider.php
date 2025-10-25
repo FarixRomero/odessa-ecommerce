@@ -2,6 +2,7 @@
 
 namespace Webkul\YapePlin\Providers;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class YapePlinServiceProvider extends ServiceProvider
@@ -24,6 +25,20 @@ class YapePlinServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../Resources/views' => resource_path('views/vendor/yapeplin'),
         ], 'yapeplin-views');
+
+        // Listen to invoice creation to update order status
+        Event::listen('sales.invoice.save.after', function ($invoice) {
+            $order = $invoice->order;
+
+            // If order is using Yape/Plin and is in pending_payment status
+            if ($order->payment->method === 'yapeplin' && $order->status === 'pending_payment') {
+                // Update order status to processing
+                app('Webkul\Sales\Repositories\OrderRepository')->update(
+                    ['status' => 'processing'],
+                    $order->id
+                );
+            }
+        });
     }
 
     /**

@@ -441,7 +441,7 @@
                                     <div class="row small-text">
                                         <span>{{ $additionalDetails['title'] }}:</span>
 
-                                        <span>{{ $additionalDetails['value'] }}</span>
+                                        <span>{{ $additionalDetails['value'] ?? '' }}</span>
                                     </div>
                                 @endif
                             </td>

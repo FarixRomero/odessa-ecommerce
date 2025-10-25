@@ -711,13 +711,85 @@
 
                             <!-- Additional details -->
                             @if (! empty($additionalDetails))
-                                <p class="pt-4 font-semibold text-gray-800 dark:text-white">
-                                    {{ $additionalDetails['title'] }}
-                                </p>
+                                @if (isset($additionalDetails['title']))
+                                    <p class="pt-4 font-semibold text-gray-800 dark:text-white">
+                                        {{ $additionalDetails['title'] }}
+                                    </p>
+                                @endif
 
-                                <p class="text-gray-600 dark:text-gray-300">
-                                    {{ $additionalDetails['value'] }}
-                                </p>
+                                @if (isset($additionalDetails['value']))
+                                    <p class="text-gray-600 dark:text-gray-300">
+                                        {{ $additionalDetails['value'] }}
+                                    </p>
+                                @endif
+                            @endif
+
+                            {{-- Yape/Plin Receipt Section --}}
+                            @if ($order->payment->method === 'yapeplin')
+                                @php
+                                    $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
+                                        ->findWhere(['order_id' => $order->id])
+                                        ->first();
+                                @endphp
+
+                                @if ($receipt)
+                                    <span class="mt-4 block w-full border-b dark:border-gray-800"></span>
+
+                                    <div class="pt-4">
+                                        <p class="font-semibold text-gray-800 dark:text-white mb-4">
+                                            📄 Comprobante Yape/Plin
+                                        </p>
+
+                                        {{-- Receipt Preview --}}
+                                        <div class="mb-4">
+                                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Comprobante</p>
+                                            @php
+                                                $fileExtension = pathinfo($receipt->receipt_path, PATHINFO_EXTENSION);
+                                            @endphp
+
+                                            @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
+                                                <div class="flex items-start gap-3">
+                                                    <img
+                                                        src="{{ Storage::url($receipt->receipt_path) }}"
+                                                        alt="Comprobante"
+                                                        class="w-24 h-auto rounded border border-gray-300 dark:border-gray-600"
+                                                    >
+                                                    <a
+                                                        href="{{ Storage::url($receipt->receipt_path) }}"
+                                                        target="_blank"
+                                                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                        </svg>
+                                                        Ver imagen
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <a
+                                                    href="{{ Storage::url($receipt->receipt_path) }}"
+                                                    target="_blank"
+                                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                                >
+                                                    <span class="text-lg">📄</span>
+                                                    <span class="text-gray-900 dark:text-gray-100">{{ $receipt->original_filename }}</span>
+                                                </a>
+                                            @endif
+                                        </div>
+
+                                        {{-- Upload Date --}}
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            Subido: {{ core()->formatDate($receipt->created_at, 'd M Y H:i') }}
+                                        </p>
+                                    </div>
+                                @else
+                                    <span class="mt-4 block w-full border-b dark:border-gray-800"></span>
+                                    <div class="pt-4">
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
+                                            ⚠️ El cliente aún no ha subido el comprobante de pago
+                                        </p>
+                                    </div>
+                                @endif
                             @endif
 
                             {!! view_render_event('bagisto.admin.sales.order.payment-method.after', ['order' => $order]) !!}
