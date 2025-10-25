@@ -8,5 +8,6 @@ return [
         'class'            => 'Webkul\YapePlin\Payment\YapePlin',
         'active'           => true,
         'sort'             => 1,
+        'image'            => 'yape-logo.png',
     ],
 ];

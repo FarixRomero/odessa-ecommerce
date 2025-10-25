@@ -61,6 +61,6 @@ class YapePlin extends Payment
      */
     public function getImage()
     {
-        return asset('vendor/yapeplin/images/yapeplin.png');
+        return asset('yape-logo.png');
     }
 }
