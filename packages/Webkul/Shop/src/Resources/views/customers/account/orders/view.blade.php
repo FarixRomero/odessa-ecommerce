@@ -2250,6 +2250,55 @@
                                 </div>
                             @endif
 
+                            {{-- Yape/Plin Payment Status --}}
+                            @if ($order->payment->method === 'yapeplin')
+                                @php
+                                    $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
+                                        ->findWhere(['order_id' => $order->id])
+                                        ->first();
+                                @endphp
+
+                                @if ($receipt)
+                                    @if ($receipt->status === 'pending')
+                                        <div class="mt-2 rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-yellow-600">⏳</span>
+                                                <span class="text-xs text-yellow-800 font-medium">
+                                                    @lang('shop::app.customers.account.orders.view.payment-pending-validation')
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @elseif ($receipt->status === 'verified')
+                                        <div class="mt-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-green-600">✓</span>
+                                                <span class="text-xs text-green-800 font-medium">
+                                                    @lang('shop::app.customers.account.orders.view.payment-verified')
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @elseif ($receipt->status === 'rejected')
+                                        <div class="mt-2 rounded-md bg-red-50 border border-red-200 px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-red-600">✗</span>
+                                                <span class="text-xs text-red-800 font-medium">
+                                                    @lang('shop::app.customers.account.orders.view.payment-rejected')
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="mt-2 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-gray-600">📸</span>
+                                            <span class="text-xs text-gray-800 font-medium">
+                                                @lang('shop::app.customers.account.orders.view.payment-awaiting-receipt')
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endif
+
                             {!! view_render_event('bagisto.shop.customers.account.orders.view.payment_method_details.after', ['order' => $order]) !!}
 
                         </div>
@@ -2330,6 +2379,55 @@
                         <div class="instructions">
                             <label>{{ $additionalDetails['title'] }}</label>
                         </div>
+                    @endif
+
+                    {{-- Yape/Plin Payment Status --}}
+                    @if ($order->payment->method === 'yapeplin')
+                        @php
+                            $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
+                                ->findWhere(['order_id' => $order->id])
+                                ->first();
+                        @endphp
+
+                        @if ($receipt)
+                            @if ($receipt->status === 'pending')
+                                <div class="rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-yellow-600">⏳</span>
+                                        <span class="text-sm text-yellow-800 font-medium">
+                                            @lang('shop::app.customers.account.orders.view.payment-pending-validation')
+                                        </span>
+                                    </div>
+                                </div>
+                            @elseif ($receipt->status === 'verified')
+                                <div class="rounded-md bg-green-50 border border-green-200 px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-green-600">✓</span>
+                                        <span class="text-sm text-green-800 font-medium">
+                                            @lang('shop::app.customers.account.orders.view.payment-verified')
+                                        </span>
+                                    </div>
+                                </div>
+                            @elseif ($receipt->status === 'rejected')
+                                <div class="rounded-md bg-red-50 border border-red-200 px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-red-600">✗</span>
+                                        <span class="text-sm text-red-800 font-medium">
+                                            @lang('shop::app.customers.account.orders.view.payment-rejected')
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            <div class="rounded-md bg-gray-50 border border-gray-200 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-600">📸</span>
+                                    <span class="text-sm text-gray-800 font-medium">
+                                        @lang('shop::app.customers.account.orders.view.payment-awaiting-receipt')
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
                     @endif
 
                     {!! view_render_event('bagisto.shop.customers.account.orders.view.payment_method_details.after', ['order' => $order]) !!}
