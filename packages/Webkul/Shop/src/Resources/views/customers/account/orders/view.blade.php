@@ -98,77 +98,118 @@
                 @endif
             </div>
         </div>
+        {!! view_render_event('bagisto.shop.customers.account.orders.view.before', ['order' => $order]) !!}
 
-        {{-- Yape/Plin Receipt Status --}}
-        @if ($order->payment->method === 'yapeplin')
-            @php
-                $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
-                    ->findWhere(['order_id' => $order->id])
-                    ->first();
-            @endphp
-
-            @if ($receipt)
-                <div class="mt-8 rounded-xl border border-gray-200 bg-white p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        📄 Comprobante de Pago Yape/Plin
+        <!-- Order Status Card -->
+        <div class="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        Estado del Pedido
                     </h3>
 
-                    <div class="space-y-4">
-                        {{-- Receipt Image/PDF --}}
-                        <div>
-                            <span class="text-sm font-medium text-gray-700 mb-2 block">Comprobante subido:</span>
-                            @php
-                                $fileExtension = pathinfo($receipt->receipt_path, PATHINFO_EXTENSION);
-                            @endphp
+                    @php
+                        $statusDescriptions = [
+                            'pending' => [
+                                'label' => 'Pendiente',
+                                'description' => 'Tu pedido ha sido recibido y está esperando procesamiento.',
+                                'color' => 'yellow',
+                                'icon' => '⏳'
+                            ],
+                            'pending_payment' => [
+                                'label' => 'Pago Pendiente',
+                                'description' => 'Estamos verificando tu comprobante de pago. Te notificaremos pronto.',
+                                'color' => 'orange',
+                                'icon' => '💳'
+                            ],
+                            'processing' => [
+                                'label' => 'En Proceso',
+                                'description' => 'Tu pedido está siendo preparado para su envío.',
+                                'color' => 'blue',
+                                'icon' => '📦'
+                            ],
+                            'completed' => [
+                                'label' => 'Completado',
+                                'description' => 'Tu pedido ha sido entregado exitosamente.',
+                                'color' => 'green',
+                                'icon' => '✅'
+                            ],
+                            'canceled' => [
+                                'label' => 'Cancelado',
+                                'description' => 'Tu pedido ha sido cancelado.',
+                                'color' => 'red',
+                                'icon' => '❌'
+                            ],
+                            'closed' => [
+                                'label' => 'Cerrado',
+                                'description' => 'Tu pedido ha sido completado y cerrado.',
+                                'color' => 'gray',
+                                'icon' => '🔒'
+                            ],
+                            'fraud' => [
+                                'label' => 'Fraude',
+                                'description' => 'Este pedido ha sido marcado como sospechoso.',
+                                'color' => 'red',
+                                'icon' => '⚠️'
+                            ]
+                        ];
 
-                            @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
-                                <div class="flex items-start gap-4">
-                                    <img
-                                        src="{{ Storage::url($receipt->receipt_path) }}"
-                                        alt="Comprobante de pago"
-                                        class="w-32 h-auto rounded-lg border border-gray-300 object-cover"
-                                    >
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-600 mb-3">{{ $receipt->original_filename }}</p>
-                                        <a
-                                            href="{{ Storage::url($receipt->receipt_path) }}"
-                                            target="_blank"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
-                                        >
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                            </svg>
-                                            Ver imagen completa
-                                        </a>
-                                    </div>
-                                </div>
-                            @else
-                                <a
-                                    href="{{ Storage::url($receipt->receipt_path) }}"
-                                    target="_blank"
-                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors"
-                                >
-                                    <span class="text-2xl">📄</span>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $receipt->original_filename }}</p>
-                                        <p class="text-xs text-gray-500">Haz clic para abrir el PDF</p>
-                                    </div>
-                                </a>
-                            @endif
-                        </div>
+                        $currentStatus = $statusDescriptions[$order->status] ?? [
+                            'label' => ucfirst($order->status),
+                            'description' => 'Estado del pedido.',
+                            'color' => 'gray',
+                            'icon' => 'ℹ️'
+                        ];
+                    @endphp
 
-                        {{-- Upload Date --}}
-                        <div class="mt-3 pt-3 border-t border-gray-200">
-                            <p class="text-xs text-gray-500">
-                                Subido el {{ core()->formatDate($receipt->created_at, 'd M Y') }} a las {{ core()->formatDate($receipt->created_at, 'H:i') }}
-                            </p>
-                        </div>
-                    </div>
+                    @switch($currentStatus['color'])
+                        @case('yellow')
+                            <span class="inline-flex items-center gap-2 rounded-full bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                            @break
+                        @case('orange')
+                            <span class="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-2 text-sm font-medium text-orange-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                            @break
+                        @case('blue')
+                            <span class="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                            @break
+                        @case('green')
+                            <span class="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                            @break
+                        @case('red')
+                            <span class="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                            @break
+                        @default
+                            <span class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800">
+                                <span class="text-lg">{{ $currentStatus['icon'] }}</span>
+                                {{ $currentStatus['label'] }}
+                            </span>
+                    @endswitch
+
+                    <p class="mt-3 text-sm text-gray-600">
+                        {{ $currentStatus['description'] }}
+                    </p>
                 </div>
-            @endif
-        @endif
 
-        {!! view_render_event('bagisto.shop.customers.account.orders.view.before', ['order' => $order]) !!}
+                <div class="hidden md:block text-6xl opacity-10">
+                    {{ $currentStatus['icon'] }}
+                </div>
+            </div>
+        </div>
 
         <!-- Order view tabs -->
         <div class="mt-8 max-md:mt-5 max-md:grid max-md:gap-4">
@@ -2250,7 +2291,7 @@
                                 </div>
                             @endif
 
-                            {{-- Yape/Plin Payment Status --}}
+                            {{-- Yape/Plin Payment Status & Receipt (Mobile) --}}
                             @if ($order->payment->method === 'yapeplin')
                                 @php
                                     $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
@@ -2259,41 +2300,42 @@
                                 @endphp
 
                                 @if ($receipt)
-                                    @if ($receipt->status === 'pending')
-                                        <div class="mt-2 rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-yellow-600">⏳</span>
-                                                <span class="text-xs text-yellow-800 font-medium">
-                                                    @lang('shop::app.customers.account.orders.view.payment-pending-validation')
-                                                </span>
-                                            </div>
-                                        </div>
-                                    @elseif ($receipt->status === 'verified')
-                                        <div class="mt-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-green-600">✓</span>
-                                                <span class="text-xs text-green-800 font-medium">
-                                                    @lang('shop::app.customers.account.orders.view.payment-verified')
-                                                </span>
-                                            </div>
-                                        </div>
-                                    @elseif ($receipt->status === 'rejected')
-                                        <div class="mt-2 rounded-md bg-red-50 border border-red-200 px-3 py-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-red-600">✗</span>
-                                                <span class="text-xs text-red-800 font-medium">
-                                                    @lang('shop::app.customers.account.orders.view.payment-rejected')
-                                                </span>
-                                            </div>
-                                        </div>
-                                    @endif
+                                    {{-- Receipt Status --}}
+                                    <div class="mt-2 mb-1">
+                                        @if ($receipt->status === 'pending')
+                                            <p class="text-xs text-yellow-700">⏳ Pendiente de verificación</p>
+                                        @elseif ($receipt->status === 'approved' || $receipt->status === 'verified')
+                                            <p class="text-xs text-green-700">✅ Comprobante aprobado</p>
+                                        @elseif ($receipt->status === 'rejected')
+                                            <p class="text-xs text-red-700">❌ Comprobante rechazado</p>
+                                            @if ($receipt->admin_notes)
+                                                <p class="text-xs text-red-600 italic">{{ $receipt->admin_notes }}</p>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    {{-- Receipt Link --}}
+                                    <div class="mt-2">
+                                        <p class="text-xs text-gray-500 mb-1">{{ core()->formatDate($receipt->created_at, 'd M Y H:i') }}</p>
+                                        <a
+                                            href="{{ Storage::url($receipt->receipt_path) }}"
+                                            target="_blank"
+                                            class="text-xs font-medium text-blue-600"
+                                        >
+                                            📄 Ver comprobante →
+                                        </a>
+                                    </div>
                                 @else
-                                    <div class="mt-2 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">
+                                    {{-- No Receipt --}}
+                                    <div class="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-gray-600">📸</span>
-                                            <span class="text-xs text-gray-800 font-medium">
-                                                @lang('shop::app.customers.account.orders.view.payment-awaiting-receipt')
-                                            </span>
+                                            <span class="text-base">📸</span>
+                                            <div>
+                                                <p class="text-xs text-orange-900 font-semibold">Sin Comprobante</p>
+                                                <a href="{{ route('yapeplin.upload', $order->id) }}" class="text-xs text-blue-600">
+                                                    Subir ahora →
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 @endif
@@ -2381,7 +2423,7 @@
                         </div>
                     @endif
 
-                    {{-- Yape/Plin Payment Status --}}
+                    {{-- Yape/Plin Payment Status & Receipt Details --}}
                     @if ($order->payment->method === 'yapeplin')
                         @php
                             $receipt = app('Webkul\YapePlin\Repositories\ReceiptRepository')
@@ -2390,42 +2432,47 @@
                         @endphp
 
                         @if ($receipt)
-                            @if ($receipt->status === 'pending')
-                                <div class="rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-yellow-600">⏳</span>
-                                        <span class="text-sm text-yellow-800 font-medium">
-                                            @lang('shop::app.customers.account.orders.view.payment-pending-validation')
-                                        </span>
-                                    </div>
-                                </div>
-                            @elseif ($receipt->status === 'verified')
-                                <div class="rounded-md bg-green-50 border border-green-200 px-3 py-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-green-600">✓</span>
-                                        <span class="text-sm text-green-800 font-medium">
-                                            @lang('shop::app.customers.account.orders.view.payment-verified')
-                                        </span>
-                                    </div>
-                                </div>
-                            @elseif ($receipt->status === 'rejected')
-                                <div class="rounded-md bg-red-50 border border-red-200 px-3 py-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-red-600">✗</span>
-                                        <span class="text-sm text-red-800 font-medium">
-                                            @lang('shop::app.customers.account.orders.view.payment-rejected')
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
+                            {{-- Receipt Status --}}
+                            <div class="mb-2">
+                                @if ($receipt->status === 'pending')
+                                    <p class="text-sm text-yellow-700">⏳ Pendiente de verificación</p>
+                                @elseif ($receipt->status === 'approved' || $receipt->status === 'verified')
+                                    <p class="text-sm text-green-700">✅ Comprobante aprobado</p>
+                                @elseif ($receipt->status === 'rejected')
+                                    <p class="text-sm text-red-700">❌ Comprobante rechazado</p>
+                                    @if ($receipt->admin_notes)
+                                        <p class="text-xs text-red-600 italic">{{ $receipt->admin_notes }}</p>
+                                    @endif
+                                @endif
+                            </div>
+
+                            {{-- Receipt Link --}}
+                            <div class="mt-2">
+                                <p class="text-xs text-gray-500">Subido: {{ core()->formatDate($receipt->created_at, 'd M Y H:i') }}</p>
+                                <a
+                                    href="{{ Storage::url($receipt->receipt_path) }}"
+                                    target="_blank"
+                                    class="text-sm font-medium text-blue-600 hover:text-blue-800"
+                                >
+                                    📄 Ver comprobante →
+                                </a>
+                            </div>
                         @else
-                            <div class="rounded-md bg-gray-50 border border-gray-200 px-3 py-2">
+                            {{-- No Receipt Uploaded --}}
+                            <div class="rounded-lg bg-orange-50 border border-orange-200 px-3 py-2.5">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-gray-600">📸</span>
-                                    <span class="text-sm text-gray-800 font-medium">
-                                        @lang('shop::app.customers.account.orders.view.payment-awaiting-receipt')
-                                    </span>
+                                    <span class="text-lg">📸</span>
+                                    <div>
+                                        <p class="text-sm text-orange-900 font-semibold">Sin Comprobante</p>
+                                        <p class="text-xs text-orange-700">Debes subir tu comprobante</p>
+                                    </div>
                                 </div>
+                                <a
+                                    href="{{ route('yapeplin.upload', $order->id) }}"
+                                    class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800"
+                                >
+                                    Subir ahora →
+                                </a>
                             </div>
                         @endif
                     @endif
