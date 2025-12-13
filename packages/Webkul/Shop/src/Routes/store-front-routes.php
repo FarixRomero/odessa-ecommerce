@@ -25,6 +25,26 @@ Route::fallback(ProductsCategoriesProxyController::class.'@index')
     ->middleware('cache.response');
 
 /**
+ * Sitemap route - serves the sitemap.xml file
+ */
+Route::get('sitemap.xml', function () {
+    $sitemap = \DB::table('sitemaps')->first();
+
+    if (!$sitemap) {
+        abort(404, 'Sitemap not configured');
+    }
+
+    $sitemapPath = 'public' . clean_path($sitemap->path . '/' . $sitemap->file_name);
+
+    if (!\Storage::exists($sitemapPath)) {
+        abort(404, 'Sitemap file not generated yet');
+    }
+
+    return response(\Storage::get($sitemapPath), 200)
+        ->header('Content-Type', 'application/xml');
+})->name('shop.sitemap');
+
+/**
  * Store front home.
  */
 Route::get('/', [HomeController::class, 'index'])

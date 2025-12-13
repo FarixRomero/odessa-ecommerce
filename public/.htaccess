@@ -10,6 +10,9 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Sitemap redirect - redirect /sitemap.xml to /storage/sitemap.xml
+    RewriteRule ^sitemap\.xml$ /storage/sitemap.xml [L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
